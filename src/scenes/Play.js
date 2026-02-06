@@ -42,21 +42,23 @@ class Play extends Phaser.Scene {
                     top: 5,
                     bottom: 5,
                 },
-                fixedWidth: 100
+            fixedWidth: 100
             }
-            this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig)
+        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig)
 
-            // Game over flag
-            this.gameOver = false
+        // display high score
+        this.highScore = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2 + 20, 'HIGHSCORE: '+highScore, scoreConfig)
 
-            // 60-second play clock
-            scoreConfig.fixedWidth = 0
-            this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
-                this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
-                this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or <- for Menu', scoreConfig).setOrigin(0.5)
-                this.gameOver = true
-            }, null, this)
-            
+        // Game over flag
+        this.gameOver = false
+
+        // 60-second play clock
+        scoreConfig.fixedWidth = 0
+        this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
+            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or <- for Menu', scoreConfig).setOrigin(0.5)
+            this.gameOver = true
+        }, null, this)
     }
 
     update() {
@@ -112,15 +114,19 @@ class Play extends Phaser.Scene {
         ship.alpha = 0
         // create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0);
-        boom.anims.play('explode')             // play explode animation
-        boom.on('animationcomplete', () => {   // callback after anim completes
-            ship.reset()                         // reset ship position
-            ship.alpha = 1                       // make ship visible again
-            boom.destroy()                       // remove explosion sprite
+        boom.anims.play('explode')
+        boom.on('animationcomplete', () => {   
+            ship.reset()
+            ship.alpha = 1
+            boom.destroy()
         })
         // score add and text update
         this.p1Score += ship.points
         this.scoreLeft.text = this.p1Score
+        if(this.p1Score > highScore) {
+            highScore = this.p1Score
+            this.highScore.setText('HIGHSCORE: '+highScore)
+        }
         this.sound.play('sfx-explosion')
     }
 }

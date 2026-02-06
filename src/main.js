@@ -1,3 +1,10 @@
+/* 
+Shiloh Sharmahd
+Zombie Patrol
+1 pointers:
+-high score
+-left/right movement while rocket is firing
+*/
 let config = {
     type: Phaser.AUTO,
     width: 640,
@@ -10,3 +17,4 @@ let keyFIRE, keyRESET, keyLEFT, keyRIGHT
 
 let borderUISize = game.config.height / 15
 let borderPadding = borderUISize / 3
+let highScore = 0
