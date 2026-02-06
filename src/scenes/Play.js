@@ -28,6 +28,15 @@ class Play extends Phaser.Scene {
         keyRESET = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT)
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT)
+        keyM = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M)
+
+        // add pointer fire button
+        this.input.on('pointerdown', (pointer) => {
+            if ((!this.p1Rocket.isFiring) && this.mouseControls) {
+                this.p1Rocket.isFiring = true
+                this.p1Rocket.sfxShot.play()
+            }
+        })
 
         // initialize score
         this.p1Score = 0
@@ -44,21 +53,26 @@ class Play extends Phaser.Scene {
                 },
             fixedWidth: 100
             }
-        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig)
+        this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, 'SCORE: '+this.p1Score+' ', scoreConfig)
 
         // display high score
-        this.highScore = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2 + 20, 'HIGHSCORE: '+highScore, scoreConfig)
+        this.highScore = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2 + 20, 'HIGHSCORE: '+highScore+' ', scoreConfig)
 
-        // Game over flag
+        // display mouse toggle
+        this.mouseToggle = this.add.text(borderUISize + borderPadding + 150, borderUISize + borderPadding*2, 'M: mouse controls  ', scoreConfig)
+
+        // mouse controls flag
+        this.mouseControls = false
+
+        // game over flag
         this.gameOver = false
 
-        // 60-second play clock
-        scoreConfig.fixedWidth = 0
-        this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
-            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
-            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or <- for Menu', scoreConfig).setOrigin(0.5)
-            this.gameOver = true
-        }, null, this)
+        // We offset the X position to put it to the right or below specific UI elements
+        this.clockDisplay = this.add.text(borderUISize + borderPadding + 150, borderUISize + borderPadding*2 + 20, 'TIME: ' + game.settings.gameTimer/1000, scoreConfig)
+
+        // initialize time
+        this.timeLimit = game.settings.gameTimer
+        this.startTime = this.time.now
     }
 
     update() {
@@ -68,6 +82,11 @@ class Play extends Phaser.Scene {
         }
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
             this.scene.start("menuScene")
+        }
+
+        // check key input for mouse controlls toggle
+        if (Phaser.Input.Keyboard.JustDown(keyM)) {
+            this.mouseControls = !this.mouseControls
         }
 
 
@@ -92,6 +111,24 @@ class Play extends Phaser.Scene {
         if (this.checkCollision(this.p1Rocket, this.ship01)) {
             this.p1Rocket.reset()
             this.shipExplode(this.ship01)
+        }
+        if (!this.gameOver) {
+            // Calculate remaining time
+            let elapsed = this.time.now - this.startTime
+            let remaining = this.timeLimit - elapsed
+
+            // Convert to seconds
+            let seconds = Math.ceil(remaining / 1000)
+
+            // Update Display
+            this.clockDisplay.text = 'TIME: ' + seconds
+
+            // Check if time ran out
+            if (remaining <= 0) {
+                this.gameOver = true
+                this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
+                this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or <- for Menu', scoreConfig).setOrigin(0.5)
+            }
         }
     }
 
@@ -127,6 +164,24 @@ class Play extends Phaser.Scene {
             highScore = this.p1Score
             this.highScore.setText('HIGHSCORE: '+highScore)
         }
-        this.sound.play('sfx-explosion')
+
+        // add time to score
+        this.timeLimit += 5000
+
+        // this.sound.play('sfx-explosion')
+        switch (Phaser.Math.Between(1, 4)) {
+            case 1:
+                this.sound.play('my_explosion1')
+                break
+            case 2:
+                this.sound.play('my_explosion2')
+                break
+            case 3:
+                this.sound.play('my_explosion3')
+                break
+            case 4:
+                this.sound.play('my_explosion4')
+                break
+        }
     }
 }
